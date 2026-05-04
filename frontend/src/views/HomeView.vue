@@ -17,12 +17,12 @@
 
       <h1>Witaj w Home</h1>
 
-      <div v-if="user.role === 'uczen'" class="content">
+      <div v-if="user.role === 'student'" class="content">
         <h2>Widok Ucznia</h2>
         <button @click="goGroups" class="groups-btn">Grupy</button>
       </div>
 
-      <div v-if="user.role === 'instruktor'" class="content">
+      <div v-if="user.role === 'instructor'" class="content">
         <h2>Widok Instruktora</h2>
         <button @click="goGroups" class="groups-btn">Grupy</button>
       </div>
