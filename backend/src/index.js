@@ -9,6 +9,7 @@ const groupsRouter    = require('./routes/groups');
 const quizzesRouter   = require('./routes/quizzes');
 const questionsRouter = require('./routes/questions');
 const attemptsRouter  = require('./routes/attempts');
+const poolsRouter     = require('./routes/pools');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,6 +44,7 @@ app.use('/api/groups',    groupsRouter);
 app.use('/api/quizzes',   quizzesRouter);
 app.use('/api/questions', questionsRouter);
 app.use('/api/attempts',  attemptsRouter);
+app.use('/api/pools',     poolsRouter);
 
 // Health check
 app.get('/api/health', async (req, res) => {

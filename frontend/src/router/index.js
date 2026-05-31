@@ -10,6 +10,7 @@ import AddQuizView from '../views/AddQuizView.vue'
 import GroupDetailView from '../views/GroupDetailView.vue'
 import QuizTakeView from '../views/QuizTakeView.vue'
 import QuizResultsView from '../views/QuizResultsView.vue'
+import PoolsView from '../views/PoolsView.vue'
 
 const routes = [
   { path: '/', component: LoginView },
@@ -20,6 +21,7 @@ const routes = [
   { path: '/delete', component: AccDeleteView },
   { path: '/groups', component: GroupsView },
   { path: '/add-quiz', component: AddQuizView },
+  { path: '/pools', component: PoolsView },
   { path: '/group/:name', component: GroupDetailView },
   { path: '/group/:groupName/quiz/:quizId', name: 'quiz-view', component: QuizTakeView },
   { path: '/group/:groupName/results/:quizId', name: 'quiz-results', component: QuizResultsView }

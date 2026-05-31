@@ -8,7 +8,7 @@
       </div>
 
       <div v-if="user.role === 'instructor'" class="instruktor-view">
-        <button @click="router.push('/add-quiz')" class="create-quiz-btn">+ Stwórz nowy quiz</button>
+        <button @click="router.push(`/add-quiz?group_id=${groupData.id}`)" class="create-quiz-btn">+ Stwórz nowy quiz</button>
         <h3>Quizy w tej grupie:</h3>
         <div v-if="quizzes.length" class="quizzes-list">
           <div v-for="quiz in quizzes" :key="quiz.id" class="quiz-card">

@@ -15,8 +15,13 @@ api.interceptors.response.use(
   response => response,
   error => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      window.location.href = '/login'
+      const url = error.config?.url || ''
+      // Nie przekierowuj na login gdy sam endpoint logowania zwraca 401
+      const isAuthCall = url.includes('/auth/login') || url.includes('/auth/register')
+      if (!isAuthCall) {
+        localStorage.removeItem('token')
+        window.location.href = '/'
+      }
     }
     return Promise.reject(error)
   }

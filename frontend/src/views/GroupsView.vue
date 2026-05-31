@@ -14,6 +14,7 @@
       <div class="create-group">
         <input v-model="newGroupName" placeholder="Nazwa nowej grupy" />
         <button @click="createGroup" class="create-btn">Stwórz grupę</button>
+        <button @click="router.push('/pools')" class="pools-btn">Pule pytań</button>
       </div>
       <p v-if="error" style="color:red">{{ error }}</p>
       <h3>Aktywne grupy:</h3>
@@ -21,7 +22,7 @@
         <li v-for="group in groups" :key="group.id" @click="openGroup(group)" class="group-item">
           <span>{{ group.name }}</span>
           <span class="code">Kod: {{ group.join_code }}</span>
-          <button @click.stop="router.push('/add-quiz')" class="quiz-btn">Stwórz quiz</button>
+          <button @click.stop="router.push(`/add-quiz?group_id=${group.id}`)" class="quiz-btn">Stwórz quiz</button>
         </li>
       </ul>
     </div>
@@ -66,7 +67,8 @@ onMounted(async () => {
 })
 
 async function createGroup() {
-  if (!newGroupName.value) return
+  if (!newGroupName.value) return (error.value = 'Podaj nazwę grupy')
+  error.value = ''
   try {
     const { data } = await api.post('/groups', { name: newGroupName.value })
     groups.value.unshift(data)
@@ -107,6 +109,7 @@ input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
 .group-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border: 1px solid #ccc; border-radius: 4px; margin-bottom: 5px; cursor: pointer; }
 .group-item:hover { background-color: #f8f9fa; }
 .quiz-btn { padding: 5px 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+.pools-btn { padding: 8px 16px; background-color: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer; white-space: nowrap; }
 .code { font-size: 12px; color: #666; }
 .status { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
 .accepted { background: #d4edda; color: #155724; }

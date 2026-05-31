@@ -2,111 +2,69 @@
   <div class="delete-container">
     <h1>Usuń konto</h1>
 
-    <div v-if="user.role === 'uczen'" class="uczen-view">
-      <button @click="showConfirmation" class="delete-btn">Usuń konto</button>
+    <div class="info">
+      <p>Usunięcie konta jest <strong>nieodwracalne</strong>. Twoje dane zostaną dezaktywowane.</p>
+      <p v-if="user.role === 'instructor'" class="warn">
+        Uwaga: jako instruktor posiadasz grupy i quizy — po usunięciu konta nie będą one dostępne dla studentów.
+      </p>
+    </div>
 
-      <div v-if="showConfirm" class="confirmation">
-        <p>Usunięcie konta jest nieodwracalne. Czy na pewno chcesz usunąć konto?</p>
-        <button @click="confirmDelete" class="confirm-btn">Tak</button>
-        <button @click="cancelDelete" class="cancel-btn">Nie</button>
+    <button v-if="!showConfirm" @click="showConfirm = true" class="delete-btn">Usuń konto</button>
+
+    <div v-if="showConfirm" class="confirmation">
+      <p>Czy na pewno chcesz usunąć konto?</p>
+      <p v-if="error" class="error">{{ error }}</p>
+      <div class="confirm-btns">
+        <button @click="confirmDelete" class="confirm-btn">Tak, usuń</button>
+        <button @click="showConfirm = false" class="cancel-btn">Anuluj</button>
       </div>
     </div>
 
-    <div v-if="user.role === 'instruktor'" class="instruktor-view">
-      <div class="info">
-        <h3>Aktywne kursy i quizy:</h3>
-        <ul>
-          <li>Kurs Matematyka - 15 uczniów</li>
-          <li>Quiz Fizyka - 20 pytań</li>
-          <li>Kurs Chemia - 8 uczniów</li>
-        </ul>
-        <p>Uwaga: Usunięcie konta spowoduje usunięcie wszystkich powiązanych kursów i quizów.</p>
-      </div>
-
-      <button @click="showConfirmation" class="delete-btn">Usuń konto</button>
-
-      <div v-if="showConfirm" class="confirmation">
-        <p>Usunięcie konta jest nieodwracalne. Czy na pewno chcesz usunąć konto?</p>
-        <button @click="confirmDelete" class="confirm-btn">Tak</button>
-        <button @click="cancelDelete" class="cancel-btn">Nie</button>
-      </div>
-    </div>
+    <button @click="router.push('/home')" class="back-btn">Powrót do Home</button>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { user, logout } from '../store/user.js'
+import api from '../api/index.js'
 
 const router = useRouter()
 const showConfirm = ref(false)
+const error = ref('')
+const userId = ref(null)
 
-function showConfirmation() {
-  showConfirm.value = true
-}
+onMounted(async () => {
+  try {
+    const { data } = await api.get('/auth/me')
+    userId.value = data.id
+  } catch {
+    error.value = 'Błąd ładowania danych konta'
+  }
+})
 
-function confirmDelete() {
-  // For now, just logout and go to login
-  logout()
-  router.push('/')
-}
-
-function cancelDelete() {
-  showConfirm.value = false
+async function confirmDelete() {
+  error.value = ''
+  try {
+    await api.delete(`/users/${userId.value}`)
+    logout()
+    router.push('/')
+  } catch (err) {
+    error.value = err.response?.data?.error || 'Błąd usuwania konta'
+  }
 }
 </script>
 
 <style scoped>
-.delete-container {
-  max-width: 600px;
-  margin: 50px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-}
-
-.delete-btn {
-  padding: 10px 20px;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  margin: 20px 0;
-}
-
-.confirmation {
-  margin-top: 20px;
-  padding: 15px;
-  background-color: #f8f9fa;
-  border-radius: 4px;
-}
-
-.confirm-btn, .cancel-btn {
-  padding: 8px 16px;
-  margin: 0 5px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.confirm-btn {
-  background-color: #dc3545;
-  color: white;
-}
-
-.cancel-btn {
-  background-color: #6c757d;
-  color: white;
-}
-
-.info {
-  margin-bottom: 20px;
-}
-
-ul {
-  margin: 10px 0;
-  padding-left: 20px;
-}
+.delete-container { max-width: 500px; margin: 50px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+.info { margin-bottom: 24px; }
+.warn { color: #856404; background: #fff3cd; padding: 10px; border-radius: 4px; margin-top: 8px; }
+.delete-btn { padding: 10px 24px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 15px; font-weight: 600; }
+.confirmation { margin: 20px 0; padding: 16px; background: #fff5f5; border: 1px solid #f5c6cb; border-radius: 6px; }
+.confirm-btns { display: flex; gap: 10px; margin-top: 12px; }
+.confirm-btn { padding: 8px 20px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600; }
+.cancel-btn { padding: 8px 20px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; }
+.back-btn { margin-top: 20px; padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; display: block; }
+.error { color: #dc3545; margin: 8px 0; }
 </style>

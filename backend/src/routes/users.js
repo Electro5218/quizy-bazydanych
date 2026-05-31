@@ -1,5 +1,4 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
 const pool = require('../db/pool');
 const { authenticate, requireRole } = require('../middleware/auth');
 
@@ -58,7 +57,7 @@ router.put('/:id', authenticate, async (req, res) => {
     return res.status(403).json({ error: 'Brak dostępu' });
   }
 
-  const { first_name, last_name, username } = req.body;
+  const { first_name, last_name, username, email } = req.body;
 
   try {
     const result = await pool.query(
@@ -66,10 +65,10 @@ router.put('/:id', authenticate, async (req, res) => {
          first_name = COALESCE($1, first_name),
          last_name = COALESCE($2, last_name),
          username = COALESCE($3, username),
-         updated_at = NOW()
-       WHERE id = $4 AND is_deleted = false
+         email = COALESCE($4, email)
+       WHERE id = $5 AND is_deleted = false
        RETURNING id, email, username, first_name, last_name, role`,
-      [first_name, last_name, username, userId]
+      [first_name, last_name, username, email ? email.toLowerCase() : null, userId]
     );
 
     if (!result.rows.length) return res.status(404).json({ error: 'Użytkownik nie istnieje' });
@@ -102,14 +101,18 @@ router.put('/:id/password', authenticate, async (req, res) => {
   }
 
   try {
+    // Weryfikacja i zmiana hasła przez funkcje pgcrypto w bazie danych
     const user = await pool.query('SELECT password_hash FROM users WHERE id = $1', [userId]);
-    const valid = await bcrypt.compare(current_password, user.rows[0].password_hash);
-    if (!valid) return res.status(401).json({ error: 'Nieprawidłowe aktualne hasło' });
+    const verifyResult = await pool.query(
+      'SELECT verify_password($1, $2) AS ok',
+      [current_password, user.rows[0].password_hash]
+    );
+    if (!verifyResult.rows[0].ok) return res.status(401).json({ error: 'Nieprawidlowe aktualne haslo' });
 
-    const hash = await bcrypt.hash(new_password, 12);
+    // Trigger trg_users_updated_at zaktualizuje updated_at automatycznie
     await pool.query(
-      'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
-      [hash, userId]
+      'UPDATE users SET password_hash = hash_password($1) WHERE id = $2',
+      [new_password, userId]
     );
 
     res.json({ message: 'Hasło zmienione pomyślnie' });
@@ -131,7 +134,7 @@ router.delete('/:id', authenticate, async (req, res) => {
 
   try {
     await pool.query(
-      `UPDATE users SET is_deleted = true, updated_at = NOW() WHERE id = $1`,
+      `UPDATE users SET is_deleted = true WHERE id = $1`,
       [userId]
     );
     res.json({ message: 'Konto zostało dezaktywowane' });
@@ -150,7 +153,7 @@ router.patch('/:id/block', authenticate, requireRole('admin'), async (req, res) 
 
   try {
     await pool.query(
-      `UPDATE users SET is_blocked = $1, updated_at = NOW() WHERE id = $2`,
+      `UPDATE users SET is_blocked = $1 WHERE id = $2`,
       [is_blocked, userId]
     );
     res.json({ message: is_blocked ? 'Konto zablokowane' : 'Konto odblokowane' });
