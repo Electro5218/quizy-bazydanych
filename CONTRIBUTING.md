@@ -1,76 +1,71 @@
-# 🤝 Contributing Guide
-
-Thanks for contributing! 🚀
+# Zasady współpracy — QuizyDB
 
 ---
 
-## 📋 General Rules
+## Wymagania deweloperskie
 
-* Write clean and readable code
-* Follow naming conventions
-* Keep commits small and meaningful
-* Do not commit secrets (.env files)
-
----
-
-## 🌿 Branching Strategy
-
-* `main` → stable version
-* `dev` → development branch
-* feature branches:
-
-  * `feature/<name>`
-  * `fix/<name>`
+- Node.js 18+
+- PostgreSQL 14+
+- Git
 
 ---
 
-## ✅ Commit Convention
+## Branching
 
-Use clear commit messages:
+| Branch | Przeznaczenie |
+|---|---|
+| `main` | Stabilna wersja produkcyjna |
+| `feature/<nazwa>` | Nowa funkcjonalność |
+| `fix/<nazwa>` | Naprawa błędu |
+
+---
+
+## Konwencja commitów
 
 ```
-feat: add quiz creation endpoint
-fix: correct login validation
-docs: update README
+feat: dodaj endpoint reset hasła
+fix: popraw walidację tokenu JWT
+refactor: przenieś logikę scoringu do bazy
+docs: zaktualizuj API.md o endpoints pul
 ```
 
----
-
-## 🔍 Code Review
-
-Before submitting a PR:
-
-* Ensure code compiles
-* Test your changes
-* Follow project structure
-* Add comments if necessary
+Prefiks opisuje rodzaj zmiany: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`.
 
 ---
 
-## 🚀 Pull Request Process
+## Pull request
 
-1. Fork the repo
-2. Create a feature branch
-3. Commit changes
-4. Push to your fork
-5. Open a Pull Request
-
----
-
-## 🧪 Testing
-
-* Test all critical flows:
-
-  * authentication
-  * quiz solving
-  * group management
+1. Utwórz branch od `main`
+2. Wprowadź zmiany
+3. Upewnij się że backend startuje (`npm run dev`) i nie ma błędów
+4. Opisz w PR co zmieniasz i dlaczego
+5. Otwórz Pull Request do `main`
 
 ---
 
-## 💡 Suggestions
+## Zasady kodu
 
-Feel free to open issues for:
+- Bez ORM — tylko surowe SQL z parametryzacją
+- Logika biznesowa w bazie danych (triggery/funkcje) tam gdzie to możliwe
+- Nie commituj `.env` ani `node_modules`
+- Nie commituj `backend/.env` — używaj `.env.example` jako szablonu
 
-* bugs
-* improvements
-* new features
+---
+
+## Inicjalizacja bazy po klonowaniu
+
+```bash
+cd backend
+cp .env.example .env
+# Uzupełnij DATABASE_URL i inne zmienne
+npm run db:init
+npm run db:seed
+```
+
+Jeśli schemat jest nieaktualny:
+
+```bash
+npm run db:reset
+npm run db:init
+npm run db:seed
+```
